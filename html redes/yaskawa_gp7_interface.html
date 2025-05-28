@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brazo Robótico Yaskawa GP7 - Movimientos Simulados</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.1) 10px,
+                rgba(255, 255, 255, 0.1) 20px
+            );
+            animation: movePattern 20s linear infinite;
+        }
+
+        @keyframes movePattern {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .video-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .video-option {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid transparent;
+        }
+
+        .video-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .video-option:hover::before {
+            left: 100%;
+        }
+
+        .video-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            border-color: #ff6b6b;
+        }
+
+        .video-option.active {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .video-option h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .video-option p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .video-display {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-container {
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            background: #000;
+        }
+
+        .video-info {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-info h3 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .video-info p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .no-video-message {
+            color: #666;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .video-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Brazo Robótico Yaskawa GP7</h1>
+            <p>Movimientos Simulados - Selecciona un video para visualizar</p>
+        </div>
+        
+        <div class="content">
+            <div class="video-selector">
+                <div class="video-option" data-video="prisma-trapezoidal-vertical">
+                    <h3>📐 Prisma Trapezoidal Vertical</h3>
+                    <p>Movimiento vertical con geometría trapezoidal</p>
+                </div>
+                
+                <div class="video-option" data-video="prisma-trapezoidal-horizontal">
+                    <h3>📏 Prisma Trapezoidal Horizontal</h3>
+                    <p>Movimiento horizontal con geometría trapezoidal</p>
+                </div>
+                
+                <div class="video-option" data-video="prisma-rectangular-vertical">
+                    <h3>⬜ Prisma Rectangular Vertical</h3>
+                    <p>Movimiento vertical con geometría rectangular</p>
+                </div>
+                
+                <div class="video-option" data-video="prisma-rectangular-horizontal">
+                    <h3>▬ Prisma Rectangular Horizontal</h3>
+                    <p>Movimiento horizontal con geometría rectangular</p>
+                </div>
+                
+                <div class="video-option" data-video="prisma-triangular">
+                    <h3>🔺 Prisma Triangular</h3>
+                    <p>Movimiento con geometría triangular</p>
+                </div>
+            </div>
+            
+            <div class="video-display">
+                <div class="no-video-message">
+                    <h3>Selecciona un video para comenzar</h3>
+                    <p>Haz clic en cualquiera de las opciones de arriba para ver el movimiento simulado del brazo robótico</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const videoOptions = document.querySelectorAll('.video-option');
+        const videoDisplay = document.querySelector('.video-display');
+        
+        const videoInfo = {
+            'prisma-trapezoidal-vertical': {
+                title: 'Prisma Trapezoidal Vertical',
+                description: 'Simulación del brazo robótico Yaskawa GP7 ejecutando movimientos precisos para crear un prisma con base trapezoidal en orientación vertical. Este movimiento requiere alta precisión en los ejes Z e Y.'
+            },
+            'prisma-trapezoidal-horizontal': {
+                title: 'Prisma Trapezoidal Horizontal',
+                description: 'Movimiento simulado del brazo robótico para formar un prisma trapezoidal en posición horizontal. La trayectoria optimiza los movimientos en los planos X-Z para máxima eficiencia.'
+            },
+            'prisma-rectangular-vertical': {
+                title: 'Prisma Rectangular Vertical',
+                description: 'Demostración de movimientos rectangulares verticales del Yaskawa GP7. Este patrón es fundamental para operaciones de soldadura y ensamblaje en posición vertical.'
+            },
+            'prisma-rectangular-horizontal': {
+                title: 'Prisma Rectangular Horizontal',
+                description: 'Simulación de trayectoria rectangular horizontal, ideal para operaciones de fresado, corte y manipulación de materiales en superficies planas.'
+            },
+            'prisma-triangular': {
+                title: 'Prisma Triangular',
+                description: 'Movimiento complejo del brazo robótico formando patrones triangulares. Este tipo de trayectoria es utilizado en aplicaciones de soldadura angular y ensamblaje de estructuras.'
+            }
+        };
+        
+        let currentVideo = null;
+        
+        videoOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                const videoKey = this.dataset.video;
+                
+                // Remover clase active de todas las opciones
+                videoOptions.forEach(opt => opt.classList.remove('active'));
+                
+                // Agregar clase active a la opción seleccionada
+                this.classList.add('active');
+                
+                // Mostrar el video
+                showVideo(videoKey);
+            });
+        });
+        
+        function showVideo(videoKey) {
+            const info = videoInfo[videoKey];
+            const videoFileName = videoKey + '.mp4';
+            
+            videoDisplay.innerHTML = `
+                <div class="video-container">
+                    <video controls autoplay muted>
+                        <source src="${videoFileName}" type="video/mp4">
+                        Tu navegador no soporta el elemento video.
+                    </video>
+                    <div class="video-info">
+                        <h3>${info.title}</h3>
+                        <p>${info.description}</p>
+                    </div>
+                    <div class="controls">
+                        <button class="control-btn" onclick="restartVideo()">🔄 Reiniciar</button>
+                        <button class="control-btn" onclick="toggleFullscreen()">⛶ Pantalla Completa</button>
+                    </div>
+                </div>
+            `;
+            
+            currentVideo = videoDisplay.querySelector('video');
+            
+            // Manejar error de carga del video
+            currentVideo.addEventListener('error', function() {
+                videoDisplay.innerHTML = `
+                    <div class="no-video-message">
+                        <h3>⚠️ Video no encontrado</h3>
+                        <p>El archivo "${videoFileName}" no se encuentra en el directorio.<br>
+                        Asegúrate de que los archivos de video estén en la misma carpeta que este archivo HTML.</p>
+                    </div>
+                `;
+            });
+        }
+        
+        function restartVideo() {
+            if (currentVideo) {
+                currentVideo.currentTime = 0;
+                currentVideo.play();
+            }
+        }
+        
+        function toggleFullscreen() {
+            if (currentVideo) {
+                if (currentVideo.requestFullscreen) {
+                    currentVideo.requestFullscreen();
+                } else if (currentVideo.mozRequestFullScreen) {
+                    currentVideo.mozRequestFullScreen();
+                } else if (currentVideo.webkitRequestFullscreen) {
+                    currentVideo.webkitRequestFullscreen();
+                } else if (currentVideo.msRequestFullscreen) {
+                    currentVideo.msRequestFullscreen();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
